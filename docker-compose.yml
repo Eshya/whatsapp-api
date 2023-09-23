@@ -1,0 +1,24 @@
+version: '3.9'
+services:
+  whatsapp: 
+    image: taufikdev88/simplewhatsappapi:${TAG:-latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # environment:
+    #   - DB_CONNECTION_STRING=mongodb://mongodb:27017/swa
+    ports:
+      - 3475:80
+    volumes:
+      - whatsapp_data:/app/data
+  
+  # mongodb:
+  #   image: mongodb/mongodb-community-server:6.0-ubi8
+  #   ports:
+  #     - 27017:27017
+  #   volumes:
+  #     - mongo_db:/data/db
+
+volumes:
+  whatsapp_data: {}
+  # mongo_db: {}
