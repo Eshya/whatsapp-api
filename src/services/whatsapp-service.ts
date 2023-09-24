@@ -122,6 +122,24 @@ export class WhatsappService {
         });
     }
 
+    async Logout() {
+        // Check if the socket is already logged out
+        if (this.state) {
+            try {
+                // Perform the logout operation
+                await this.sock.logout();
+                // Remove the authentication file
+                fs.rmSync(AUTH_FILE_LOCATION, { recursive: true, force: true });
+                this.needRestartService = true;
+                logger.info('Logged out successfully. Please restart the service for a new login.');
+            } catch (error) {
+                logger.error('Error logging out:', error);
+            }
+        } else {
+            logger.info('Not logged in. No need to log out.');
+        }
+    }
+
     GetStatus() {
         if (this.needRestartService){
             return {

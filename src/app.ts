@@ -12,6 +12,7 @@ import * as homeController from './controllers/home';
 import * as messageController from './controllers/message';
 import * as qrController from './controllers/qr';
 import * as statusController from './controllers/status';
+import * as logoutController from './controllers/logout';
 
 // Connect Database
 // databaseConnect(DB_CONNECTION_STRING);
@@ -54,5 +55,6 @@ app.get('/message', messageController.getMessageForm);
 app.post('/message', exposeWhatsappService, messageController.postMessage);
 app.get('/qr', exposeWhatsappService, qrController.getQrCode);
 app.get('/status', exposeWhatsappService, statusController.getStatus);
+app.post('/logout', exposeWhatsappService, logoutController.postLogout);
 
 export default app;
