@@ -16,3 +16,7 @@ const prod = ENVIRONMENT === "production"; // Anything else is treated as 'dev'
 
 export const SESSION_SECRET: string = process.env["SESSION_SECRET"] ?? makeString();
 export const DB_CONNECTION_STRING: string | undefined = process.env["DB_CONNECTION_STRING"];
+
+// Server configuration
+export const HOST: string = process.env["HOST"] ?? "0.0.0.0";
+export const PORT: number = parseInt(process.env["PORT"] ?? "80", 10);

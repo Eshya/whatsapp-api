@@ -5,11 +5,13 @@ import flash from 'express-flash';
 import path from 'path';
 // import { databaseConnect } from "./config/database";
 import { WhatsappService } from './services/whatsapp-service';
-import { SESSION_SECRET, DB_CONNECTION_STRING } from './util/environment';
+import { SESSION_SECRET, DB_CONNECTION_STRING, HOST, PORT } from './util/environment';
 
 // Controllers (route handlers)
 import * as homeController from './controllers/home';
 import * as messageController from './controllers/message';
+import * as messagesController from './controllers/messages';
+import * as realtimeController from './controllers/realtime';
 import * as qrController from './controllers/qr';
 import * as statusController from './controllers/status';
 import * as logoutController from './controllers/logout';
@@ -29,7 +31,8 @@ const exposeWhatsappService = (req: Request, res: Response, next: NextFunction) 
 }
 
 // Express configuration
-app.set('port', process.env.PORT || 80);
+app.set('port', PORT);
+app.set('host', HOST);
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');
 
@@ -53,6 +56,17 @@ app.use(
 app.get('/', homeController.index);
 app.get('/message', messageController.getMessageForm);
 app.post('/message', exposeWhatsappService, messageController.postMessage);
+
+// Message management routes
+app.get('/messages', exposeWhatsappService, messagesController.getMessages);
+app.delete('/messages', exposeWhatsappService, messagesController.clearMessages);
+app.get('/messages/stream', exposeWhatsappService, messagesController.streamMessages);
+app.get('/messages/paginated', exposeWhatsappService, messagesController.getPaginatedMessages);
+
+// Real-time chat routes
+app.get('/realtime', exposeWhatsappService, realtimeController.getRealtimePage);
+app.get('/api/realtime/status', exposeWhatsappService, realtimeController.getRealtimeStatus);
+
 app.get('/qr', exposeWhatsappService, qrController.getQrCode);
 app.get('/status', exposeWhatsappService, statusController.getStatus);
 app.post('/logout', exposeWhatsappService, logoutController.postLogout);

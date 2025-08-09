@@ -1,0 +1,571 @@
+extends layout
+
+block content
+  .container
+    .row
+      .col-md-12
+        h1.text-center.mb-4
+          i.fas.fa-whatsapp.text-success.me-2
+          | Real-time WhatsApp Chat
+        
+        .card.shadow
+          .card-header.bg-primary.text-white
+            h5.mb-0
+              i.fas.fa-broadcast-tower.me-2
+              | Live Chat Monitor
+          
+          .card-body
+            .row
+              .col-md-4
+                .status-card.mb-3
+                  .card.border-info
+                    .card-header.bg-info.text-white
+                      h6.mb-0
+                        i.fas.fa-signal.me-2
+                        | Connection Status
+                    .card-body
+                      #connectionStatus
+                        .d-flex.align-items-center
+                          .spinner-border.spinner-border-sm.text-warning.me-2(role="status")
+                          span Checking connection...
+              
+              .col-md-4
+                .status-card.mb-3
+                  .card.border-success
+                    .card-header.bg-success.text-white
+                      h6.mb-0
+                        i.fas.fa-phone.me-2
+                        | Phone Number
+                    .card-body
+                      #phoneNumber
+                        span.text-muted Not connected
+              
+              .col-md-4
+                .status-card.mb-3
+                  .card.border-warning
+                    .card-header.bg-warning.text-dark
+                      h6.mb-0
+                        i.fas.fa-qrcode.me-2
+                        | QR Code
+                    .card-body
+                      #qrCodeStatus
+                        span.text-muted No QR code needed
+            
+            .row
+              .col-md-12
+                .chat-container
+                  .card.border-primary
+                    .card-header.bg-primary.text-white.d-flex.justify-content-between.align-items-center
+                      h6.mb-0
+                        i.fas.fa-comments.me-2
+                        | Live Messages
+                      .btn-group
+                        button#clearMessages.btn.btn-sm.btn-outline-light
+                          i.fas.fa-trash.me-1
+                          | Clear
+                        button#refreshMessages.btn.btn-sm.btn-outline-light
+                          i.fas.fa-sync.me-1
+                          | Refresh
+                        button#restartService.btn.btn-sm.btn-outline-warning
+                          i.fas.fa-redo.me-1
+                          | Restart
+                    
+                    .card-body.chat-body(style="height: 400px; overflow-y: auto;")
+                      #messagesContainer
+                        .text-center.text-muted.py-4
+                          i.fas.fa-comments.fa-3x.mb-3
+                          p Waiting for messages...
+                    
+                    .card-footer
+                      .d-flex.justify-content-between.align-items-center
+                        small.text-muted
+                          i.fas.fa-clock.me-1
+                          | Last updated: 
+                          span#lastUpdated Never
+                        small.text-muted
+                          i.fas.fa-message.me-1
+                          | Messages: 
+                          span#messageCount 0
+                        small.text-muted
+                          i.fas.fa-users.me-1
+                          | Connected: 
+                          span#connectedClients 0
+
+  style.
+    .chat-body {
+      background-color: #f8f9fa;
+      border-radius: 0.375rem;
+    }
+    
+    .message-item {
+      background: white;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      border-left: 4px solid #007bff;
+    }
+    
+    .message-item.new {
+      border-left-color: #28a745;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    
+    .message-sender {
+      font-weight: bold;
+      color: #007bff;
+    }
+    
+    .message-time {
+      font-size: 0.8em;
+      color: #6c757d;
+    }
+    
+    .message-content {
+      margin-bottom: 8px;
+    }
+    
+    .message-type {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.7em;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .message-type.text { background-color: #e3f2fd; color: #1976d2; }
+    .message-type.image { background-color: #f3e5f5; color: #7b1fa2; }
+    .message-type.video { background-color: #e8f5e8; color: #388e3c; }
+    .message-type.audio { background-color: #fff3e0; color: #f57c00; }
+    .message-type.document { background-color: #fce4ec; color: #c2185b; }
+    .message-type.other { background-color: #f5f5f5; color: #616161; }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .status-connected { background-color: #28a745; }
+    .status-disconnected { background-color: #dc3545; }
+    .status-connecting { background-color: #ffc107; }
+    
+    .no-messages {
+      text-align: center;
+      color: #6c757d;
+      padding: 40px 20px;
+    }
+    
+    .connection-status {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      padding: 10px 15px;
+      border-radius: 5px;
+      color: white;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .connection-status.show {
+      opacity: 1;
+    }
+    
+    .connection-status.connected {
+      background-color: #28a745;
+    }
+    
+    .connection-status.disconnected {
+      background-color: #dc3545;
+    }
+    
+    /* Smooth scrolling for chat container */
+    .chat-body {
+      scroll-behavior: smooth;
+    }
+    
+    /* Better animation for new messages */
+    .message-item.new {
+      animation: slideInFromRight 0.4s ease-out;
+    }
+    
+    @keyframes slideInFromRight {
+      from {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    /* Ensure messages container has proper height */
+    .chat-body {
+      min-height: 300px;
+      max-height: 500px;
+    }
+
+  #connectionStatusIndicator.connection-status
+
+  script(src="/socket.io/socket.io.js")
+  script.
+    let socket = null;
+    let messageCount = 0;
+    let isConnected = false;
+    
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🚀 Initializing real-time chat page...');
+      initializeRealtimeChat();
+      updateLastUpdated();
+    });
+    
+    function initializeRealtimeChat() {
+      // Connect to Socket.IO
+      connectToSocket();
+      
+      // Set up periodic status checks
+      setInterval(checkConnectionStatus, 5000); // Check every 5 seconds
+    }
+    
+    function connectToSocket() {
+      console.log('🔌 Connecting to WebSocket server...');
+      socket = io();
+      
+      socket.on('connect', function() {
+        console.log('✅ Connected to WebSocket server');
+        isConnected = true;
+        showConnectionStatus('Connected to server', 'connected');
+        
+        // Request initial status immediately
+        socket.emit('get_status');
+        
+        // Test message to verify connection
+        console.log('🧪 Testing WebSocket connection...');
+        setTimeout(() => {
+          console.log('🧪 Sending test ping...');
+          socket.emit('get_status');
+        }, 1000);
+      });
+      
+      socket.on('disconnect', function() {
+        console.log('❌ Disconnected from WebSocket server');
+        isConnected = false;
+        showConnectionStatus('Disconnected from server', 'disconnected');
+      });
+      
+      socket.on('status', function(status) {
+        console.log('📊 Received initial status:', status);
+        updateConnectionStatus(status);
+      });
+      
+      socket.on('status_update', function(status) {
+        console.log('📊 Received status update:', status);
+        updateConnectionStatus(status);
+      });
+      
+      socket.on('existing_messages', function(messages) {
+        console.log(`📥 Received ${messages.length} existing messages`);
+        
+        // Clear any waiting content first
+        const container = document.getElementById('messagesContainer');
+        const waitingContent = container.querySelector('.text-center.text-muted.py-4');
+        if (waitingContent) {
+          console.log('🗑️ Removing waiting for messages content');
+          waitingContent.remove();
+        }
+        
+        if (messages && messages.length > 0) {
+          messages.forEach(msg => {
+            addMessageToUI(msg, false);
+          });
+        }
+      });
+      
+      socket.on('new_message', function(message) {
+        console.log('🆕 New message received:', message);
+        console.log('📊 Current message count before adding:', messageCount);
+        console.log('🔍 Message details:', {
+          id: message.id,
+          from: message.from,
+          message: message.message,
+          type: message.type,
+          timestamp: message.timestamp
+        });
+        
+        // Add message to UI
+        addMessageToUI(message, true);
+        
+        console.log('📊 Message count after adding:', messageCount);
+        showConnectionStatus('New message received!', 'connected');
+        
+        // Ensure scroll to bottom after a short delay
+        setTimeout(() => {
+          const container = document.getElementById('messagesContainer');
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+            console.log('📜 Final scroll to bottom for new message');
+          }
+        }, 200);
+      });
+      
+      socket.on('messages_cleared', function() {
+        console.log('🗑️ Messages cleared');
+        resetMessagesUI();
+        showConnectionStatus('Messages cleared', 'connected');
+      });
+      
+      socket.on('messages_refreshed', function(messages) {
+        console.log(`🔄 Refreshed ${messages.length} messages`);
+        document.getElementById('messagesContainer').innerHTML = '';
+        messageCount = 0;
+        
+        if (messages && messages.length > 0) {
+          messages.forEach(msg => {
+            addMessageToUI(msg, false);
+          });
+        } else {
+          document.getElementById('messagesContainer').innerHTML = `
+            <div class="no-messages">
+              <i class="fas fa-comments fa-3x mb-3"></i>
+              <p>Waiting for messages...</p>
+            </div>
+          `;
+        }
+        
+        updateLastUpdated();
+        showConnectionStatus('Messages refreshed', 'connected');
+      });
+      
+      socket.on('restart_initiated', function() {
+        console.log('🔄 Service restart initiated');
+        showConnectionStatus('Service restarting...', 'connecting');
+      });
+      
+      socket.on('connect_error', function(error) {
+        console.error('❌ Socket connection error:', error);
+        showConnectionStatus('Connection error', 'disconnected');
+      });
+    }
+    
+    function showConnectionStatus(message, type) {
+      const indicator = document.getElementById('connectionStatusIndicator');
+      indicator.textContent = message;
+      indicator.className = `connection-status ${type}`;
+      indicator.classList.add('show');
+      
+      setTimeout(() => {
+        indicator.classList.remove('show');
+      }, 3000);
+    }
+    
+    function checkConnectionStatus() {
+      if (socket && socket.connected) {
+        console.log('🔍 Requesting status update...');
+        socket.emit('get_status');
+      } else {
+        console.log('⚠️ Socket not connected, attempting to reconnect...');
+        connectToSocket();
+      }
+    }
+    
+    function updateConnectionStatus(status) {
+      console.log('🔄 Updating connection status:', status);
+      const connectionStatus = document.getElementById('connectionStatus');
+      const phoneNumber = document.getElementById('phoneNumber');
+      const qrCodeStatus = document.getElementById('qrCodeStatus');
+      
+      // Update connection status
+      if (status.isConnected) {
+        connectionStatus.innerHTML = `
+          <div class="d-flex align-items-center">
+            <span class="status-indicator status-connected"></span>
+            <span class="text-success fw-bold">Connected</span>
+          </div>
+        `;
+        phoneNumber.innerHTML = `<span class="text-success fw-bold">${status.phoneNumber || 'Unknown'}</span>`;
+        qrCodeStatus.innerHTML = `<span class="text-muted">Not needed</span>`;
+        console.log('✅ Status updated: Connected to', status.phoneNumber);
+      } else if (status.qrcode) {
+        connectionStatus.innerHTML = `
+          <div class="d-flex align-items-center">
+            <span class="status-indicator status-connecting"></span>
+            <span class="text-warning fw-bold">QR Code Available</span>
+          </div>
+        `;
+        phoneNumber.innerHTML = `<span class="text-muted">Not connected</span>`;
+        qrCodeStatus.innerHTML = `
+          <a href="/qr" target="_blank" class="btn btn-sm btn-warning">
+            <i class="fas fa-qrcode me-1"></i>View QR Code
+          </a>
+        `;
+        console.log('⚠️ Status updated: QR Code available');
+      } else {
+        connectionStatus.innerHTML = `
+          <div class="d-flex align-items-center">
+            <span class="status-indicator status-disconnected"></span>
+            <span class="text-danger fw-bold">Disconnected</span>
+          </div>
+        `;
+        phoneNumber.innerHTML = `<span class="text-muted">Not connected</span>`;
+        qrCodeStatus.innerHTML = `<span class="text-muted">No QR code</span>`;
+        console.log('❌ Status updated: Disconnected');
+      }
+    }
+    
+    function addMessageToUI(message, isNew = false) {
+      console.log('🔧 Adding message to UI:', message);
+      
+      const container = document.getElementById('messagesContainer');
+      const messageCountElement = document.getElementById('messageCount');
+      
+      if (!container) {
+        console.error('❌ messagesContainer not found!');
+        return;
+      }
+      
+      if (!messageCountElement) {
+        console.error('❌ messageCount element not found!');
+        return;
+      }
+      
+      // Remove "no messages" placeholder if it exists
+      const noMessages = container.querySelector('.no-messages');
+      if (noMessages) {
+        console.log('🗑️ Removing no-messages placeholder');
+        noMessages.remove();
+      }
+      
+      // Also remove any "waiting for messages" content
+      const waitingContent = container.querySelector('.text-center.text-muted.py-4');
+      if (waitingContent) {
+        console.log('🗑️ Removing waiting for messages content');
+        waitingContent.remove();
+      }
+      
+      // Create message element
+      const messageElement = document.createElement('div');
+      messageElement.className = `message-item ${isNew ? 'new' : ''}`;
+      
+      const messageTime = new Date(message.timestamp).toLocaleString();
+      const typeClass = message.type || 'other';
+      
+      messageElement.innerHTML = `
+        <div class="message-header">
+          <span class="message-sender">
+            <i class="fas fa-user me-1"></i>${message.from}
+          </span>
+          <span class="message-time">
+            <i class="fas fa-clock me-1"></i>${messageTime}
+          </span>
+        </div>
+        <div class="message-content">
+          ${message.message}
+        </div>
+        <div class="message-type ${typeClass}">
+          ${message.type || 'other'}
+        </div>
+      `;
+      
+      // Add to container
+      container.appendChild(messageElement);
+      console.log('✅ Message element added to container');
+      
+      // Update message count
+      messageCount++;
+      messageCountElement.textContent = messageCount;
+      console.log('📊 Message count updated to:', messageCount);
+      
+      // Always scroll to bottom for new messages
+      if (isNew) {
+        // Use setTimeout to ensure DOM is updated
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight;
+          console.log('📜 Scrolled to bottom for new message');
+        }, 100);
+      }
+      
+      // Update last updated time
+      updateLastUpdated();
+      console.log('✅ Message UI update completed');
+    }
+    
+    function resetMessagesUI() {
+      const container = document.getElementById('messagesContainer');
+      const messageCountElement = document.getElementById('messageCount');
+      
+      if (container) {
+        container.innerHTML = `
+          <div class="text-center text-muted py-4">
+            <i class="fas fa-comments fa-3x mb-3"></i>
+            <p>Waiting for messages...</p>
+          </div>
+        `;
+      }
+      
+      if (messageCountElement) {
+        messageCountElement.textContent = '0';
+      }
+      
+      messageCount = 0;
+      updateLastUpdated();
+    }
+    
+    function updateLastUpdated() {
+      const lastUpdatedElement = document.getElementById('lastUpdated');
+      lastUpdatedElement.textContent = new Date().toLocaleTimeString();
+    }
+    
+    // Button event handlers
+    document.getElementById('clearMessages').addEventListener('click', function() {
+      if (confirm('Are you sure you want to clear all messages?')) {
+        if (socket && socket.connected) {
+          socket.emit('clear_messages');
+        } else {
+          alert('Not connected to server');
+        }
+      }
+    });
+    
+    document.getElementById('refreshMessages').addEventListener('click', function() {
+      if (socket && socket.connected) {
+        socket.emit('refresh_messages');
+      } else {
+        alert('Not connected to server');
+      }
+    });
+    
+    document.getElementById('restartService').addEventListener('click', function() {
+      if (confirm('Are you sure you want to restart the WhatsApp service? This will disconnect and reconnect.')) {
+        if (socket && socket.connected) {
+          socket.emit('restart_service');
+          showConnectionStatus('Restarting service...', 'connecting');
+        } else {
+          alert('Not connected to server');
+        }
+      }
+    }); 

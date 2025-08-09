@@ -15,6 +15,10 @@ nav.navbar.navbar-expand-lg.navbar-light.bg-light
           a.nav-link(href='/qr') Qr Code
         li.nav-item(class=(title === 'Send Message') ? 'active' : undefined)
           a.nav-link(href='/message') Send Message
+        li.nav-item(class=(title === 'Real-time WhatsApp Chat') ? 'active' : undefined)
+          a.nav-link(href='/realtime')
+            i.fas.fa-broadcast-tower.me-1
+            | Live Chat
         //- li.nav-item(class=(title === 'Log Out') ? 'active' : undefined)
         //-   a.nav-link(href='/logout') Log Out
         
